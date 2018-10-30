@@ -21,16 +21,16 @@ export class HeroService {
   constructor(private http: HttpClient, private messageService: MessageService) {
   }
 
-  // 获取英雄集合
+  // 获取英雄集合 get
   getHeroes(): Observable<Hero[]> {
     return this.http.get<Hero[]>(this.heroesUrl)
       .pipe(
-        tap(heroes => this.log('fetched heroes')),
+        tap(() => this.log('fetched heroes')),
         catchError(this.handleError('getHeroes', []))
       );
   }
 
-  // 获取单个英雄 通过ID
+  // 获取单个英雄 通过ID get
   getHero(id: number): Observable<Hero> {
     const url = `${this.heroesUrl}/${id}}`;
 
@@ -41,7 +41,19 @@ export class HeroService {
       );
   }
 
-  // 更新英雄
+  // 搜寻英雄 通过name ==> get
+  searchHeroes(term: string): Observable<Hero[]> {
+    if (!term.trim()) {
+      // 如果没有搜索项, 则返回空的英雄数组
+      return of([]);
+    }
+    return this.http.get<Hero[]>(`${this.heroesUrl}/?name=${term}`).pipe(
+      tap(() => this.log(`found heroes matching "${term}"`)),
+      catchError(this.handleError<Hero[]>('searchHeroes', []))
+    );
+  }
+
+  // 更新英雄 put
   updateHero(hero: Hero): Observable<any> {
     return this.http.put(this.heroesUrl, hero, httpOptions)
       .pipe(
@@ -50,7 +62,7 @@ export class HeroService {
       );
   }
 
-  // 新增英雄
+  // 新增英雄 post
   addHero(hero: Hero): Observable<Hero> {
     return this.http.post(this.heroesUrl, hero, httpOptions).pipe(
       tap((hero: Hero) => this.log(`added hero w/ id=${hero.id}`)),
@@ -58,7 +70,7 @@ export class HeroService {
     );
   }
 
-  // 刪除英雄
+  // 刪除英雄 delete
   deleteHero(hero: Hero | number): Observable<Hero> {
     const id = typeof hero === 'number' ? hero : hero.id;
     const url = `${this.heroesUrl}/${id}}`;
